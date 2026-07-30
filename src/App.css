@@ -47,7 +47,9 @@ button {
   cursor: pointer;
 }
 
-button:hover:not(:disabled) {
+/* Cells own their hover styling in Board.css, where the background must not
+   cover the cell state (shot marks, placement preview). */
+button:not(.cell):hover:not(:disabled) {
   background: #17557f;
 }
 

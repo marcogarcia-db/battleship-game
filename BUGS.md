@@ -106,15 +106,20 @@ mostrava o preview verde/vermelho — ficava azul (cor de hover), então a prime
 célula do navio parecia inválida/vazia. O mesmo acontecia na batalha: passar o
 mouse sobre um `•` (água) ou `✕` já atirado escondia a marca.
 
-**Causa raiz.** Especificidade CSS. `.cell:not(:disabled):hover` (três
-seletores) vencia `.cell--preview-valid` / `.cell--miss` (um seletor), mesmo
-declarados depois no arquivo. Um primeiro conserto (`.cell.cell--preview-valid`)
-ainda perdia do hover, o que foi confirmado lendo o `background` computado da
-célula: `rgb(23, 85, 127)` — o azul do hover.
+**Causa raiz.** Especificidade CSS, em **duas** regras de hover diferentes:
 
-**Correção.** O hover deixou de pintar fundo de forma genérica: ele agora só
-altera o `transform`, e o fundo de hover fica restrito a células realmente
-vazias, sem preview:
+1. `.cell:not(:disabled):hover` em `Board.css` (três seletores) vencia
+   `.cell--preview-valid` / `.cell--miss` (um seletor), mesmo declarados depois
+   no arquivo. Um primeiro conserto (`.cell.cell--preview-valid`) ainda perdia,
+   o que foi confirmado lendo o `background` computado da célula:
+   `rgb(23, 85, 127)` — o azul do hover.
+2. Depois de corrigir a primeira, o teste manual mostrou que a célula sob o
+   cursor **continuava** azul: a regra global `button:hover:not(:disabled)` de
+   `App.css`, escrita para os botões de controle, também atingia as células
+   (que são `<button>`) e vencia as classes de estado.
+
+**Correção.** O hover deixou de pintar fundo de forma genérica. Em `Board.css`
+ele só altera o `transform`, e o fundo fica restrito a células realmente vazias:
 
 ```css
 .cell:not(:disabled):hover { transform: scale(1.06); }
@@ -124,8 +129,16 @@ vazias, sem preview:
 }
 ```
 
-**Verificação.** Preview de 5 células aparece verde inclusive sob o cursor, e
-marcas de água/acerto/afundado permanecem visíveis ao passar o mouse.
+E em `App.css` a regra global passou a excluir as células, que cuidam do próprio
+hover:
+
+```css
+button:not(.cell):hover:not(:disabled) { background: #17557f; }
+```
+
+**Verificação.** Preview de 5 células aparece verde inclusive sob o cursor
+(célula-âncora incluída), e marcas de água/acerto/afundado permanecem visíveis
+ao passar o mouse.
 
 ---
 
