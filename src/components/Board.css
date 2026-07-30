@@ -39,8 +39,13 @@
 }
 
 .cell:not(:disabled):hover {
-  background: #17557f;
   transform: scale(1.06);
+}
+
+/* The hover background must never hide a cell state (shot marks, placement
+   preview), so it only applies to plain empty cells. */
+.cell--empty:not(.cell--preview-valid):not(.cell--preview-invalid):not(:disabled):hover {
+  background: #17557f;
 }
 
 .cell--ship {

@@ -111,24 +111,31 @@ export default function App() {
   }
 
   function handleFire(row, col) {
-    if (phase !== PHASE.BATTLE || turn !== 'player') return
-    const { board, result, ship } = fireAt(enemyBoard, row, col)
-    if (result === SHOT_RESULT.INVALID) {
-      setState((prev) => ({ ...prev, message: 'Você já atirou nessa célula. Escolha outra.' }))
-      return
-    }
+    // Everything is derived from `prev` so that two clicks landing in the same
+    // React batch cannot fire against a stale board or steal the AI's turn.
+    setState((prev) => {
+      if (prev.phase !== PHASE.BATTLE || prev.turn !== 'player') return prev
 
-    const enemyDefeated = isFleetDestroyed(board)
-    setState((prev) => ({
-      ...prev,
-      enemyBoard: board,
-      turn: enemyDefeated ? prev.turn : 'ai',
-      phase: enemyDefeated ? PHASE.OVER : prev.phase,
-      winner: enemyDefeated ? 'player' : null,
-      message: describeShot('Você', result, ship),
-    }))
+      const { board, result, ship } = fireAt(prev.enemyBoard, row, col)
+      if (result === SHOT_RESULT.INVALID) {
+        return { ...prev, message: 'Você já atirou nessa célula. Escolha outra.' }
+      }
+
+      const enemyDefeated = isFleetDestroyed(board)
+      return {
+        ...prev,
+        enemyBoard: board,
+        turn: enemyDefeated ? prev.turn : 'ai',
+        phase: enemyDefeated ? PHASE.OVER : prev.phase,
+        winner: enemyDefeated ? 'player' : null,
+        message: describeShot('Você', result, ship),
+      }
+    })
   }
 
+  // Depends on the whole state object: a shot that lands in the same batch as the
+  // AI's own update leaves `turn` unchanged between renders, and an effect keyed
+  // only on `turn` would never re-run — freezing the game on the AI's turn.
   useEffect(() => {
     if (phase !== PHASE.BATTLE || turn !== 'ai') return undefined
 
@@ -153,7 +160,7 @@ export default function App() {
     }, AI_DELAY_MS)
 
     return () => clearTimeout(aiTimer.current)
-  }, [phase, turn])
+  }, [state, phase, turn])
 
   return (
     <div className="app">
