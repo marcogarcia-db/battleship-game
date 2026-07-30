@@ -1,0 +1,140 @@
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2.2rem);
+}
+
+.app-subtitle {
+  margin: 4px 0 16px;
+  color: #9fc0dd;
+  font-size: 0.9rem;
+}
+
+.status {
+  min-height: 1.4em;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  background: #0d2b45;
+  border-left: 4px solid #e07a2f;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid #1b4a72;
+  border-radius: 6px;
+  background: #10395c;
+  color: #f4f9ff;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #17557f;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: #e07a2f;
+  border-color: #f0a969;
+  color: #10233a;
+  font-weight: 600;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #f0a969;
+}
+
+.fleet-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fleet-item {
+  padding: 4px 10px;
+  border: 1px solid #1b4a72;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: #9fc0dd;
+}
+
+.fleet-item--placed {
+  color: #7ddba4;
+  border-color: #2e8b57;
+}
+
+.fleet-item--next {
+  color: #f4f9ff;
+  border-color: #e07a2f;
+  background: #1b3b57;
+}
+
+.boards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.board-wrapper h2 {
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+  color: #cfe3f5;
+}
+
+.turn {
+  margin: 0;
+  font-weight: 600;
+  color: #f0a969;
+}
+
+.fleet-status {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  font-size: 0.78rem;
+  color: #9fc0dd;
+}
+
+.fleet-status .sunk {
+  color: #e2564c;
+  text-decoration: line-through;
+}
+
+.game-over {
+  margin-top: 24px;
+  padding: 18px;
+  background: #0d2b45;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.game-over h2 {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
