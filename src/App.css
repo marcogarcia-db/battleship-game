@@ -4,6 +4,27 @@
   padding: 24px 16px 48px;
 }
 
+.language-switcher {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.language-button {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+/* Matches `aria-pressed="true"`, which the generic hover rule skips. */
+.language-button--active {
+  background: #e07a2f;
+  border-color: #f0a969;
+  color: #10233a;
+  font-weight: 600;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: clamp(1.5rem, 5vw, 2.2rem);
@@ -47,9 +68,9 @@ button {
   cursor: pointer;
 }
 
-/* Cells own their hover styling in Board.css, where the background must not
-   cover the cell state (shot marks, placement preview). */
-button:not(.cell):hover:not(:disabled) {
+/* The generic hover background must not cover a meaningful state: cells own
+   their hover in Board.css, and toggle buttons keep their pressed colour. */
+button:not(.cell):not([aria-pressed='true']):hover:not(:disabled) {
   background: #17557f;
 }
 

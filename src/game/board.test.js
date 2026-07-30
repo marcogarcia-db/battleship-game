@@ -20,8 +20,8 @@ import {
   shipCells,
 } from './index.js'
 
-const destroyer = { id: 'destroyer', name: 'Destroier', size: 2 }
-const cruiser = { id: 'cruiser', name: 'Cruzador', size: 3 }
+const destroyer = { id: 'destroyer', size: 2 }
+const cruiser = { id: 'cruiser', size: 3 }
 
 /** Fires at every cell of every ship of `board`. */
 function sinkEverything(board) {

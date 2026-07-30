@@ -20,10 +20,11 @@ export const SHOT_RESULT = {
   SUNK: 'sunk',
 }
 
+/** Ships carry no display name: the UI translates them from `id` (see src/i18n). */
 export const FLEET = [
-  { id: 'carrier', name: 'Porta-aviões', size: 5 },
-  { id: 'battleship', name: 'Encouraçado', size: 4 },
-  { id: 'cruiser', name: 'Cruzador', size: 3 },
-  { id: 'submarine', name: 'Submarino', size: 3 },
-  { id: 'destroyer', name: 'Destroier', size: 2 },
+  { id: 'carrier', size: 5 },
+  { id: 'battleship', size: 4 },
+  { id: 'cruiser', size: 3 },
+  { id: 'submarine', size: 3 },
+  { id: 'destroyer', size: 2 },
 ]

@@ -1,4 +1,5 @@
 import { BOARD_SIZE, CELL, cellState } from '../game/index.js'
+import { useTranslation } from '../i18n/LanguageProvider.jsx'
 import './Board.css'
 
 const COLUMN_LABELS = 'ABCDEFGHIJ'.split('')
@@ -16,6 +17,7 @@ export default function Board({
   onCellEnter,
   onLeave,
 }) {
+  const { t } = useTranslation()
   const size = board?.size ?? BOARD_SIZE
 
   return (
@@ -45,7 +47,7 @@ export default function Board({
                   type="button"
                   className={`cell cell--${state} ${previewClass}`}
                   disabled={!interactive}
-                  aria-label={`${COLUMN_LABELS[col]}${row + 1} ${state}`}
+                  aria-label={`${COLUMN_LABELS[col]}${row + 1} ${t(`cell.${state}`)}`}
                   onClick={() => onCellClick?.(row, col)}
                   onMouseEnter={() => onCellEnter?.(row, col)}
                 >

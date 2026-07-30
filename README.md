@@ -8,6 +8,13 @@ Jogo de Batalha Naval jogável no navegador contra uma IA, 100% client-side (Rea
 
 Não precisa de login nem de backend: a IA roda no seu navegador.
 
+## Idiomas
+
+A interface está disponível em **português, inglês e espanhol**. O seletor fica no topo da tela e
+pode ser trocado a qualquer momento, inclusive durante uma partida (as mensagens já exibidas são
+retraduzidas). Na primeira visita o idioma é detectado a partir do navegador; depois a escolha é
+guardada no `localStorage`.
+
 ## Rodar localmente
 
 ```bash
@@ -79,15 +86,25 @@ src/
     constants.js   tamanho do tabuleiro, frota, enums de célula/resultado
     board.js       criação do tabuleiro, posicionamento, disparo, fim de jogo
     ai.js          IA hunt/target
-    *.test.js      35 testes unitários (Vitest)
+    *.test.js      testes unitários (Vitest)
+  i18n/
+    translations.js       strings de pt / en / es
+    index.js              tradutor, detecção e persistência do idioma
+    LanguageProvider.jsx  contexto React com o idioma atual e `t()`
+    translations.test.js  garante paridade de chaves e placeholders
   components/
     Board.jsx      grade 10x10 com estados visuais e pré-visualização
   App.jsx          máquina de estados: setup -> batalha -> fim de jogo
 ```
 
+48 testes unitários no total (`npm test`).
+
 A lógica do jogo é totalmente separada da UI: `src/game/` não importa React e todas as funções
 são puras (nunca mutam o tabuleiro recebido), o que torna os testes diretos e evita bugs de
-estado compartilhado no React.
+estado compartilhado no React. Ela também é agnóstica de idioma — os navios têm apenas `id` e
+`size`, e a UI traduz o nome a partir do `id`. As mensagens de estado são guardadas como chave +
+parâmetros (nunca como texto já renderizado), por isso trocar o idioma no meio da partida também
+traduz a mensagem que está na tela.
 
 ## Bugs encontrados e corrigidos
 

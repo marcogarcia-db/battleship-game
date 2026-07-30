@@ -13,7 +13,7 @@ import {
   registerResult,
 } from './index.js'
 
-const cruiser = { id: 'cruiser', name: 'Cruzador', size: 3 }
+const cruiser = { id: 'cruiser', size: 3 }
 
 /** Deterministic replacement for Math.random. */
 function sequence(values) {

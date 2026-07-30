@@ -4,7 +4,7 @@ import { BOARD_SIZE, CELL, FLEET, ORIENTATION, SHOT_RESULT } from './constants.j
  * A board is an immutable-ish plain object:
  * {
  *   size: number,
- *   ships: [{ id, name, size, orientation, cells: [{row, col}], hits: boolean[] }],
+ *   ships: [{ id, size, orientation, cells: [{row, col}], hits: boolean[] }],
  *   shots: (null | 'miss' | 'hit')[][]
  * }
  */
@@ -63,7 +63,6 @@ export function placeShip(board, shipDef, row, col, orientation) {
 
   const ship = {
     id: shipDef.id,
-    name: shipDef.name,
     size: shipDef.size,
     orientation,
     cells: shipCells(row, col, shipDef.size, orientation),

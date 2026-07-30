@@ -17,6 +17,8 @@ import {
   remainingShips,
   shipCells,
 } from './game/index.js'
+import { LANGUAGES } from './i18n/index.js'
+import { useTranslation } from './i18n/LanguageProvider.jsx'
 import './App.css'
 
 const PHASE = { SETUP: 'setup', BATTLE: 'battle', OVER: 'over' }
@@ -30,11 +32,14 @@ function initialState() {
     ai: createAI(),
     turn: 'player',
     winner: null,
-    message: 'Posicione sua frota: clique no seu tabuleiro ou use "Posicionar aleatoriamente".',
+    // Messages are stored as a key + params, never as a rendered string, so
+    // switching the language also re-translates the message already on screen.
+    message: { key: 'setup.intro' },
   }
 }
 
 export default function App() {
+  const { t, language, setLanguage } = useTranslation()
   const [state, setState] = useState(initialState)
   const [orientation, setOrientation] = useState(ORIENTATION.HORIZONTAL)
   const [hover, setHover] = useState(null)
@@ -68,7 +73,7 @@ export default function App() {
     if (phase !== PHASE.SETUP || !nextShipToPlace) return
     const board = placeShip(playerBoard, nextShipToPlace, row, col, orientation)
     if (!board) {
-      setState((prev) => ({ ...prev, message: 'Posição inválida: fora da grade ou sobrepondo outro navio.' }))
+      setState((prev) => ({ ...prev, message: { key: 'setup.invalid' } }))
       return
     }
     const remaining = FLEET.length - board.ships.length
@@ -76,8 +81,8 @@ export default function App() {
       ...prev,
       playerBoard: board,
       message: remaining > 0
-        ? `${nextShipToPlace.name} posicionado. Faltam ${remaining} navio(s).`
-        : 'Frota completa! Clique em "Iniciar batalha".',
+        ? { key: 'setup.placed', params: { ship: shipNameKey(nextShipToPlace.id), remaining } }
+        : { key: 'setup.complete' },
     }))
   }
 
@@ -86,7 +91,7 @@ export default function App() {
     setState((prev) => ({
       ...prev,
       playerBoard: placeFleetRandomly(createBoard()),
-      message: 'Frota posicionada aleatoriamente. Clique em "Iniciar batalha".',
+      message: { key: 'setup.random' },
     }))
   }
 
@@ -95,7 +100,7 @@ export default function App() {
     setState((prev) => ({
       ...prev,
       playerBoard: createBoard(),
-      message: 'Posicionamento limpo. Posicione sua frota novamente.',
+      message: { key: 'setup.cleared' },
     }))
   }
 
@@ -105,7 +110,7 @@ export default function App() {
       ...prev,
       phase: PHASE.BATTLE,
       turn: 'player',
-      message: 'Sua vez: clique no tabuleiro inimigo para atirar.',
+      message: { key: 'battle.intro' },
     }))
     setHover(null)
   }
@@ -118,7 +123,7 @@ export default function App() {
 
       const { board, result, ship } = fireAt(prev.enemyBoard, row, col)
       if (result === SHOT_RESULT.INVALID) {
-        return { ...prev, message: 'Você já atirou nessa célula. Escolha outra.' }
+        return { ...prev, message: { key: 'battle.alreadyShot' } }
       }
 
       const enemyDefeated = isFleetDestroyed(board)
@@ -128,7 +133,7 @@ export default function App() {
         turn: enemyDefeated ? prev.turn : 'ai',
         phase: enemyDefeated ? PHASE.OVER : prev.phase,
         winner: enemyDefeated ? 'player' : null,
-        message: describeShot('Você', result, ship),
+        message: describeShot('actor.player', result, ship),
       }
     })
   }
@@ -154,7 +159,7 @@ export default function App() {
           turn: playerDefeated ? prev.turn : 'player',
           phase: playerDefeated ? PHASE.OVER : prev.phase,
           winner: playerDefeated ? 'ai' : null,
-          message: describeShot('A IA', result, ship),
+          message: describeShot('actor.ai', result, ship),
         }
       })
     }, AI_DELAY_MS)
@@ -165,11 +170,12 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Batalha Naval</h1>
-        <p className="app-subtitle">Você contra uma IA &quot;hunt / target&quot; — 100% no navegador.</p>
+        <LanguageSwitcher language={language} onChange={setLanguage} label={t('language.label')} />
+        <h1>{t('app.title')}</h1>
+        <p className="app-subtitle">{t('app.subtitle')}</p>
       </header>
 
-      <p className="status" role="status">{message}</p>
+      <p className="status" role="status">{t(message.key, translateParams(t, message.params))}</p>
 
       {phase === PHASE.SETUP && (
         <section className="panel">
@@ -177,17 +183,17 @@ export default function App() {
             <button type="button" onClick={() => setOrientation(
               orientation === ORIENTATION.HORIZONTAL ? ORIENTATION.VERTICAL : ORIENTATION.HORIZONTAL,
             )}>
-              Rotacionar ({orientation === ORIENTATION.HORIZONTAL ? 'horizontal' : 'vertical'})
+              {t('controls.rotate', { orientation: t(`orientation.${orientation}`) })}
             </button>
-            <button type="button" onClick={handleRandomFleet}>Posicionar aleatoriamente</button>
-            <button type="button" onClick={handleClearFleet}>Limpar posicionamento</button>
+            <button type="button" onClick={handleRandomFleet}>{t('controls.random')}</button>
+            <button type="button" onClick={handleClearFleet}>{t('controls.clear')}</button>
             <button
               type="button"
               className="primary"
               disabled={playerBoard.ships.length !== FLEET.length}
               onClick={handleStartBattle}
             >
-              Iniciar batalha
+              {t('controls.start')}
             </button>
           </div>
 
@@ -197,7 +203,7 @@ export default function App() {
               const isNext = nextShipToPlace?.id === ship.id
               return (
                 <li key={ship.id} className={`fleet-item${placed ? ' fleet-item--placed' : ''}${isNext ? ' fleet-item--next' : ''}`}>
-                  {ship.name} ({ship.size}) {placed ? '✓' : ''}
+                  {t(shipNameKey(ship.id))} ({ship.size}) {placed ? '✓' : ''}
                 </li>
               )
             })}
@@ -205,7 +211,7 @@ export default function App() {
 
           <div className="boards">
             <div className="board-wrapper">
-              <h2>Sua frota</h2>
+              <h2>{t('board.setupTitle')}</h2>
               <Board
                 board={playerBoard}
                 revealShips
@@ -223,17 +229,17 @@ export default function App() {
       {phase !== PHASE.SETUP && (
         <section className="panel">
           {phase === PHASE.BATTLE && (
-            <p className="turn">{turn === 'player' ? 'Sua vez' : 'Vez da IA...'}</p>
+            <p className="turn">{turn === 'player' ? t('turn.player') : t('turn.ai')}</p>
           )}
 
           <div className="boards">
             <div className="board-wrapper">
-              <h2>Sua frota ({remainingShips(playerBoard).length} navios vivos)</h2>
+              <h2>{t('board.playerTitle', { count: remainingShips(playerBoard).length })}</h2>
               <Board board={playerBoard} revealShips />
               <FleetStatus board={playerBoard} />
             </div>
             <div className="board-wrapper">
-              <h2>Frota inimiga ({remainingShips(enemyBoard).length} navios vivos)</h2>
+              <h2>{t('board.enemyTitle', { count: remainingShips(enemyBoard).length })}</h2>
               <Board
                 board={enemyBoard}
                 revealShips={phase === PHASE.OVER}
@@ -248,28 +254,64 @@ export default function App() {
 
       {phase === PHASE.OVER && (
         <section className="game-over">
-          <h2>{winner === 'player' ? 'Vitória! Você afundou a frota inimiga.' : 'Derrota. A IA afundou sua frota.'}</h2>
-          <button type="button" className="primary" onClick={reset}>Jogar novamente</button>
+          <h2>{winner === 'player' ? t('gameOver.win') : t('gameOver.lose')}</h2>
+          <button type="button" className="primary" onClick={reset}>{t('gameOver.playAgain')}</button>
         </section>
       )}
     </div>
   )
 }
 
+function LanguageSwitcher({ language, onChange, label }) {
+  return (
+    <div className="language-switcher" role="group" aria-label={label}>
+      {LANGUAGES.map(({ code, label: name }) => (
+        <button
+          key={code}
+          type="button"
+          className={`language-button${code === language ? ' language-button--active' : ''}`}
+          aria-pressed={code === language}
+          onClick={() => onChange(code)}
+        >
+          {name}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function FleetStatus({ board }) {
+  const { t } = useTranslation()
   return (
     <ul className="fleet-status">
       {board.ships.map((ship) => (
         <li key={ship.id} className={isShipSunk(ship) ? 'sunk' : ''}>
-          {ship.name} ({ship.size}) {isShipSunk(ship) ? '— afundado' : ''}
+          {t(shipNameKey(ship.id))} ({ship.size}) {isShipSunk(ship) ? `— ${t('fleet.sunk')}` : ''}
         </li>
       ))}
     </ul>
   )
 }
 
-function describeShot(actor, result, ship) {
-  if (result === SHOT_RESULT.MISS) return `${actor} atirou na água.`
-  if (result === SHOT_RESULT.SUNK) return `${actor} afundou o ${ship.name}!`
-  return `${actor} acertou um navio!`
+function shipNameKey(shipId) {
+  return `ship.${shipId}`
+}
+
+/** Params can themselves be translation keys (ship names, actors). */
+function translateParams(t, params) {
+  if (!params) return undefined
+  return Object.fromEntries(Object.entries(params).map(([name, value]) => [
+    name,
+    typeof value === 'string' && (value.startsWith('ship.') || value.startsWith('actor.'))
+      ? t(value)
+      : value,
+  ]))
+}
+
+function describeShot(actorKey, result, ship) {
+  if (result === SHOT_RESULT.MISS) return { key: 'shot.miss', params: { actor: actorKey } }
+  if (result === SHOT_RESULT.SUNK) {
+    return { key: 'shot.sunk', params: { actor: actorKey, ship: shipNameKey(ship.id) } }
+  }
+  return { key: 'shot.hit', params: { actor: actorKey } }
 }
