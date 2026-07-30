@@ -6,7 +6,7 @@ const codes = LANGUAGES.map((language) => language.code)
 
 describe('translations', () => {
   it('ships the three supported languages', () => {
-    expect(codes).toEqual(['pt', 'en', 'es'])
+    expect(codes).toEqual(['en', 'pt', 'es'])
     expect(Object.keys(translations).sort()).toEqual([...codes].sort())
   })
 

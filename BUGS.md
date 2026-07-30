@@ -1,33 +1,32 @@
-# Bugs encontrados e corrigidos
+# Bugs found and fixed
 
-Todos os bugs abaixo foram encontrados de verdade durante o desenvolvimento — nos
-testes unitários (Vitest) ou no teste manual/roteirizado do jogo no navegador
-(`npm run dev`). Cada item traz o sintoma observado, a causa raiz e a correção.
+Every bug below was really found during development — either by the unit tests
+(Vitest) or by manual/scripted testing of the game in the browser
+(`npm run dev`). Each entry has the observed symptom, the root cause and the fix.
 
 ---
 
-## 1. Tiro do jogador perdido quando dois cliques caem no mesmo lote do React
+## 1. Player shot lost when two clicks land in the same React batch
 
-**Sintoma observado.** Clicando rápido em duas células do tabuleiro inimigo
-(A1 e B1, no mesmo tick do navegador), só uma das duas ficava marcada: `A1`
-continuava `empty` e apenas `B1` virava `hit`. O jogador gastava dois turnos e
-recebia um único tiro.
+**Observed symptom.** Clicking two cells of the enemy board quickly (A1 and B1,
+within the same browser tick) marked only one of them: `A1` stayed `empty` and
+only `B1` became `hit`. The player spent two turns and got a single shot.
 
-**Causa raiz.** `handleFire` calculava o novo tabuleiro fora do updater, a partir
-do valor de `enemyBoard` capturado no render:
+**Root cause.** `handleFire` computed the new board outside the updater, from the
+`enemyBoard` value captured during render:
 
 ```jsx
-const { board, result, ship } = fireAt(enemyBoard, row, col)   // valor do render
+const { board, result, ship } = fireAt(enemyBoard, row, col)   // value from the render
 setState((prev) => ({ ...prev, enemyBoard: board, turn: 'ai', ... }))
 ```
 
-Os dois cliques ocorrem antes do próximo render, então ambos leem o **mesmo**
-`enemyBoard` antigo. O segundo `setState` sobrescreve o resultado do primeiro, e
-o primeiro tiro desaparece. A guarda `if (turn !== 'player') return` também usava
-o `turn` do render, por isso não bloqueava o segundo clique.
+Both clicks happen before the next render, so both read the **same** stale
+`enemyBoard`. The second `setState` overwrites the result of the first one, and
+the first shot disappears. The `if (turn !== 'player') return` guard also used
+the rendered `turn`, which is why it did not reject the second click.
 
-**Correção.** Todo o cálculo passou para dentro do updater, derivado só de `prev`
-— o que torna a transição de turno atômica e faz o segundo clique ser rejeitado:
+**Fix.** The whole computation moved inside the updater, derived only from `prev`
+— which makes the turn transition atomic and rejects the second click:
 
 ```jsx
 setState((prev) => {
@@ -37,89 +36,88 @@ setState((prev) => {
 })
 ```
 
-**Verificação.** Três cliques no mesmo tick agora produzem exatamente um tiro
-(`A1 miss`, `B1 empty`, `C1 empty`) e um único turno da IA.
+**Verification.** Three clicks in the same tick now produce exactly one shot
+(`A1 miss`, `B1 empty`, `C1 empty`) and a single AI turn.
 
 ---
 
-## 2. Jogo travando em "Vez da IA..." para sempre
+## 2. Game freezing on "AI's turn..." forever
 
-**Sintoma observado.** Em uma partida longa no navegador, o jogo parou: o
-indicador ficou em `Vez da IA...`, a mensagem em `Você atirou na água.`, os
-tabuleiros congelados e nenhum erro no console. A IA nunca mais atirou, e o
-tabuleiro do jogador ainda tinha dezenas de células livres (ou seja, não era
-falta de alvo).
+**Observed symptom.** During a long game in the browser everything stopped: the
+indicator stayed on `AI's turn...`, the message on `You missed.`, both boards
+frozen and no console error. The AI never fired again, and the player board still
+had dozens of free cells (so it was not a lack of targets).
 
-**Causa raiz.** O turno da IA era agendado por um efeito com dependências
-`[phase, turn]`. Quando o `setState` do tiro do jogador é processado no **mesmo
-lote** que o `setState` da própria IA, `turn` sai de `'ai'` e volta para `'ai'`
-dentro do mesmo commit: o valor entre renders não muda, o efeito não reexecuta e
-nenhum novo `setTimeout` é criado. Como a IA só atira dentro desse timeout, o
-jogo fica parado esperando um turno que nunca é agendado. (A mensagem final
-ser a do jogador, e não a da IA, é justamente a assinatura desse lote conjunto.)
+**Root cause.** The AI turn was scheduled by an effect with `[phase, turn]` as
+dependencies. When the `setState` of the player's shot is processed in the **same
+batch** as the AI's own `setState`, `turn` leaves `'ai'` and comes back to `'ai'`
+within a single commit: the value does not change between renders, the effect
+does not re-run and no new `setTimeout` is created. Since the AI only fires
+inside that timeout, the game waits forever for a turn that is never scheduled.
+(The last message being the player's instead of the AI's is precisely the
+signature of that shared batch.)
 
-**Correção.** O efeito passou a depender do objeto de estado inteiro, cuja
-identidade muda em toda atualização, de modo que o agendamento é reavaliado após
-qualquer commit:
+**Fix.** The effect now depends on the whole state object, whose identity changes
+on every update, so the scheduling is re-evaluated after any commit:
 
 ```jsx
 useEffect(() => {
   if (phase !== PHASE.BATTLE || turn !== 'ai') return undefined
-  aiTimer.current = setTimeout(() => { /* tiro da IA */ }, AI_DELAY_MS)
+  aiTimer.current = setTimeout(() => { /* AI shot */ }, AI_DELAY_MS)
   return () => clearTimeout(aiTimer.current)
 }, [state, phase, turn])
 ```
 
-A correção do bug 1 remove a causa mais comum do lote conjunto; esta torna o
-agendamento robusto mesmo se ele acontecer.
+The fix for bug 1 removes the most common cause of the shared batch; this one
+makes the scheduling robust even if it still happens.
 
-**Verificação.** Duas partidas completas roteirizadas até o fim (uma vitória e
-uma derrota, ~57 tiros da IA) sem travar em nenhum turno.
+**Verification.** Two full scripted games to the end (one win and one loss, ~57
+AI shots) without freezing on any turn.
 
 ---
 
-## 3. Teste da IA descrevia o comportamento errado ("target" após o segundo acerto)
+## 3. AI test asserting the wrong behaviour ("target" after the second hit)
 
-**Sintoma observado.** `npm test` falhava em
+**Observed symptom.** `npm test` failed on
 `target mode > keeps only the aligned candidates after a second hit`:
 
 ```
 expected [ { row: 4, col: 3 }, { row: 4, col: 6 } ] to deeply equal [ { row: 4, col: 6 } ]
 ```
 
-**Causa raiz.** O bug estava no **teste**, não na IA. Depois de dois acertos
-alinhados em `(4,4)` e `(4,5)`, existem duas extremidades plausíveis — `(4,3)` e
-`(4,6)` — e a IA mantinha as duas, corretamente. A expectativa considerava só
-uma extremidade, o que descartaria metade dos alvos válidos e faria a IA perder
-tiros em navios que se estendem para o lado "errado".
+**Root cause.** The bug was in the **test**, not in the AI. After two aligned
+hits on `(4,4)` and `(4,5)` there are two plausible ends — `(4,3)` and `(4,6)` —
+and the AI kept both, correctly. The expectation only accounted for one end,
+which would discard half of the valid targets and make the AI miss ships
+extending towards the "wrong" side.
 
-**Correção.** A expectativa foi ajustada para as duas extremidades alinhadas,
-mantendo intacta a lógica de `alignedCandidates`. O teste continua garantindo o
-essencial: candidatos fora do eixo do navio são descartados.
+**Fix.** The expectation was adjusted to both aligned ends, leaving the
+`alignedCandidates` logic untouched. The test still asserts what matters:
+candidates off the ship's axis are discarded.
 
 ---
 
-## 4. Estados da célula sumindo sob o cursor (hover sobrescrevia cor)
+## 4. Cell states disappearing under the cursor (hover overriding the colour)
 
-**Sintoma observado.** No posicionamento manual, a célula sob o cursor não
-mostrava o preview verde/vermelho — ficava azul (cor de hover), então a primeira
-célula do navio parecia inválida/vazia. O mesmo acontecia na batalha: passar o
-mouse sobre um `•` (água) ou `✕` já atirado escondia a marca.
+**Observed symptom.** During manual placement the cell under the cursor did not
+show the green/red preview — it stayed blue (the hover colour), so the ship's
+first cell looked invalid/empty. The same happened in battle: hovering an already
+shot `•` (miss) or `✕` hid the mark.
 
-**Causa raiz.** Especificidade CSS, em **duas** regras de hover diferentes:
+**Root cause.** CSS specificity, in **two** different hover rules:
 
-1. `.cell:not(:disabled):hover` em `Board.css` (três seletores) vencia
-   `.cell--preview-valid` / `.cell--miss` (um seletor), mesmo declarados depois
-   no arquivo. Um primeiro conserto (`.cell.cell--preview-valid`) ainda perdia,
-   o que foi confirmado lendo o `background` computado da célula:
-   `rgb(23, 85, 127)` — o azul do hover.
-2. Depois de corrigir a primeira, o teste manual mostrou que a célula sob o
-   cursor **continuava** azul: a regra global `button:hover:not(:disabled)` de
-   `App.css`, escrita para os botões de controle, também atingia as células
-   (que são `<button>`) e vencia as classes de estado.
+1. `.cell:not(:disabled):hover` in `Board.css` (three selectors) beat
+   `.cell--preview-valid` / `.cell--miss` (one selector), even though they were
+   declared later in the file. A first attempt (`.cell.cell--preview-valid`) was
+   still losing, which was confirmed by reading the cell's computed
+   `background`: `rgb(23, 85, 127)` — the hover blue.
+2. After fixing the first one, manual testing showed the cell under the cursor
+   was **still** blue: the global `button:hover:not(:disabled)` rule in
+   `App.css`, written for the control buttons, also matched the cells (which are
+   `<button>` elements) and beat the state classes.
 
-**Correção.** O hover deixou de pintar fundo de forma genérica. Em `Board.css`
-ele só altera o `transform`, e o fundo fica restrito a células realmente vazias:
+**Fix.** Hover no longer paints a background generically. In `Board.css` it only
+changes `transform`, and the background is restricted to genuinely empty cells:
 
 ```css
 .cell:not(:disabled):hover { transform: scale(1.06); }
@@ -129,32 +127,33 @@ ele só altera o `transform`, e o fundo fica restrito a células realmente vazia
 }
 ```
 
-E em `App.css` a regra global passou a excluir as células, que cuidam do próprio
-hover:
+And the global rule in `App.css` now skips the cells, which own their hover —
+and also skips pressed toggle buttons, which would lose their colour the same
+way (the active language button):
 
 ```css
-button:not(.cell):hover:not(:disabled) { background: #17557f; }
+button:not(.cell):not([aria-pressed='true']):hover:not(:disabled) { background: #17557f; }
 ```
 
-**Verificação.** Preview de 5 células aparece verde inclusive sob o cursor
-(célula-âncora incluída), e marcas de água/acerto/afundado permanecem visíveis
-ao passar o mouse.
+**Verification.** A 5-cell preview shows up green including under the cursor
+(anchor cell included), miss/hit/sunk marks stay visible on hover, and the
+selected language keeps its highlight when hovered.
 
 ---
 
-## 5. Instrumentação de depuração deixada no componente
+## 5. Debug instrumentation left in the component
 
-**Sintoma observado.** Durante os testes roteirizados no navegador foi adicionada
-uma linha que expunha o tabuleiro inimigo no `window` para poder mirar nos navios
-(e assim forçar vitória/derrota):
+**Observed symptom.** While scripting browser tests, a line exposing the enemy
+board on `window` was added so the script could aim at the ships (and therefore
+force a win/loss):
 
 ```jsx
 if (import.meta.env.DEV) window.__enemy = state.enemyBoard
 ```
 
-**Problema.** Além de ser efeito colateral dentro do render, vazar a posição da
-frota inimiga é exatamente a informação que o jogador não deveria ter.
+**Problem.** Besides being a side effect inside the render, leaking the enemy
+fleet position is exactly the information a player must not have.
 
-**Correção.** A linha foi removida após a bateria de testes manuais; nenhuma
-informação do tabuleiro inimigo é exposta no build final (o `dist` publicado não
-contém `window.__enemy`).
+**Fix.** The line was removed after the manual test round; no enemy board
+information is exposed in the final build (the published `dist` contains no
+`window.__enemy`).

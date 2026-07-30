@@ -1,117 +1,117 @@
-# Batalha Naval (Battleship) — Jogador vs IA
+# Battleship — Player vs AI
 
-Jogo de Batalha Naval jogável no navegador contra uma IA, 100% client-side (React 18 + Vite).
+Battleship game playable in the browser against an AI, 100% client-side (React 18 + Vite).
 
-## Jogar online
+## Play online
 
 **https://marcogarcia-db.github.io/battleship-game/**
 
-Não precisa de login nem de backend: a IA roda no seu navegador.
+No login and no backend required: the AI runs in your browser.
 
-## Idiomas
+## Languages
 
-A interface está disponível em **português, inglês e espanhol**. O seletor fica no topo da tela e
-pode ser trocado a qualquer momento, inclusive durante uma partida (as mensagens já exibidas são
-retraduzidas). Na primeira visita o idioma é detectado a partir do navegador; depois a escolha é
-guardada no `localStorage`.
+The interface is available in **English, Portuguese and Spanish**. The switcher sits at the top of
+the screen and can be changed at any time, even during a game (messages already on screen are
+re-translated). On the first visit the language is detected from the browser; after that the choice
+is kept in `localStorage`.
 
-## Rodar localmente
+## Running locally
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
 ```
 
-Outros scripts:
+Other scripts:
 
 ```bash
-npm test         # testes unitários da lógica do jogo (Vitest)
-npm run build    # build de produção em dist/
-npm run preview  # serve o build de produção
+npm test         # unit tests (Vitest)
+npm run build    # production build into dist/
+npm run preview  # serves the production build
 npm run lint     # ESLint
 ```
 
-## Regras
+## Rules
 
-- Tabuleiro de 10x10 para cada lado.
-- Frota padrão (idêntica para o jogador e para a IA):
+- A 10x10 board for each side.
+- Standard fleet (identical for the player and the AI):
 
-  | Navio | Tamanho |
+  | Ship | Size |
   | --- | --- |
-  | Porta-aviões | 5 |
-  | Encouraçado | 4 |
-  | Cruzador | 3 |
-  | Submarino | 3 |
-  | Destroier | 2 |
+  | Carrier | 5 |
+  | Battleship | 4 |
+  | Cruiser | 3 |
+  | Submarine | 3 |
+  | Destroyer | 2 |
 
-- **Setup:** posicione a frota clicando no seu tabuleiro (o botão *Rotacionar* alterna
-  horizontal/vertical), ou use *Posicionar aleatoriamente*. *Limpar posicionamento* recomeça o
-  setup. Navios precisam ficar inteiros dentro da grade e não podem se sobrepor; podem ficar
-  encostados. A frota da IA é sempre posicionada aleatoriamente.
-- **Batalha:** os turnos alternam — um tiro do jogador, um tiro da IA. Clique numa célula do
-  tabuleiro inimigo para atirar. Células já atacadas não podem ser reatacadas.
-- Cada tiro devolve **água**, **acerto** ou **afundou** (quando todas as células do navio foram
-  acertadas).
-- Vence quem afundar toda a frota adversária primeiro. O fim de jogo é detectado assim que o
-  último navio afunda, e o tabuleiro inimigo é revelado.
+- **Setup:** place the fleet by clicking your board (the *Rotate* button toggles
+  horizontal/vertical), or use *Place randomly*. *Clear placement* restarts the setup. Ships must
+  fit entirely inside the grid and cannot overlap; they may touch each other. The AI fleet is
+  always placed randomly.
+- **Battle:** turns alternate — one player shot, one AI shot. Click a cell of the enemy board to
+  fire. Cells that were already attacked cannot be attacked again.
+- Every shot returns **miss**, **hit** or **sunk** (when all cells of the ship have been hit).
+- The first side to sink the whole enemy fleet wins. Game over is detected as soon as the last ship
+  sinks, and the enemy board is revealed.
 
-### Estados das células
+### Cell states
 
-| Cor | Significado |
+| Colour | Meaning |
 | --- | --- |
-| Azul | água não atacada |
-| Cinza | navio seu (só no seu tabuleiro) |
-| Azul escuro com `•` | tiro na água |
-| Laranja com `✕` | acerto |
-| Vermelho com `✕` | navio afundado |
-| Verde / vermelho (setup) | pré-visualização de posicionamento válido / inválido |
+| Blue | water, not attacked |
+| Grey | one of your ships (only on your board) |
+| Dark blue with `•` | miss |
+| Orange with `✕` | hit |
+| Red with `✕` | sunk ship |
+| Green / red (setup) | valid / invalid placement preview |
 
-## A IA
+## The AI
 
-IA "hunt / target" (`src/game/ai.js`):
+"Hunt / target" AI (`src/game/ai.js`):
 
-- **hunt:** tiro aleatório restrito a uma máscara de paridade (`(linha + coluna) % 2 === 0`).
-  Como todo navio tem tamanho ≥ 2, ele sempre cobre pelo menos uma célula da máscara — metade
-  do tabuleiro basta para encontrar a frota inteira.
-- **target:** ao acertar, enfileira as células adjacentes ao acerto. Com dois ou mais acertos no
-  mesmo navio, mantém apenas os candidatos alinhados com eles (as duas pontas da linha).
-- Ao afundar um navio, a fila é limpa e a IA volta ao modo *hunt*.
-- A IA nunca repete um tiro: os candidatos são filtrados contra as células já atacadas.
+- **hunt:** random shot restricted to a parity mask (`(row + col) % 2 === 0`). Since every ship is
+  at least 2 cells long, it always covers at least one cell of the mask — half of the board is
+  enough to find the whole fleet.
+- **target:** on a hit, it queues the cells adjacent to that hit. With two or more hits on the same
+  ship, it keeps only the candidates aligned with them (both ends of the line).
+- When a ship sinks, the queue is cleared and the AI goes back to *hunt* mode.
+- The AI never repeats a shot: candidates are filtered against the cells already attacked.
 
-## Estrutura
+## Project structure
 
 ```
 src/
-  game/            lógica pura do jogo, sem dependência de React
-    constants.js   tamanho do tabuleiro, frota, enums de célula/resultado
-    board.js       criação do tabuleiro, posicionamento, disparo, fim de jogo
-    ai.js          IA hunt/target
-    *.test.js      testes unitários (Vitest)
+  game/            pure game logic, no React dependency
+    constants.js   board size, fleet, cell/result enums
+    board.js       board creation, placement, firing, game over
+    ai.js          hunt/target AI
+    *.test.js      unit tests (Vitest)
   i18n/
-    translations.js       strings de pt / en / es
-    index.js              tradutor, detecção e persistência do idioma
-    LanguageProvider.jsx  contexto React com o idioma atual e `t()`
-    translations.test.js  garante paridade de chaves e placeholders
+    translations.js       en / pt / es strings
+    index.js              translator, language detection and persistence
+    LanguageProvider.jsx  React context holding the current language and `t()`
+    translations.test.js  asserts key and placeholder parity across languages
   components/
-    Board.jsx      grade 10x10 com estados visuais e pré-visualização
-  App.jsx          máquina de estados: setup -> batalha -> fim de jogo
+    Board.jsx      10x10 grid with visual states and placement preview
+  App.jsx          state machine: setup -> battle -> game over
 ```
 
-48 testes unitários no total (`npm test`).
+48 unit tests in total (`npm test`).
 
-A lógica do jogo é totalmente separada da UI: `src/game/` não importa React e todas as funções
-são puras (nunca mutam o tabuleiro recebido), o que torna os testes diretos e evita bugs de
-estado compartilhado no React. Ela também é agnóstica de idioma — os navios têm apenas `id` e
-`size`, e a UI traduz o nome a partir do `id`. As mensagens de estado são guardadas como chave +
-parâmetros (nunca como texto já renderizado), por isso trocar o idioma no meio da partida também
-traduz a mensagem que está na tela.
+The game logic is fully decoupled from the UI: `src/game/` does not import React and every function
+is pure (it never mutates the board it receives), which makes the tests straightforward and avoids
+shared-state bugs in React. It is also language-agnostic — ships only carry `id` and `size`, and the
+UI translates the name from the `id`. Status messages are stored as a key plus parameters (never as
+already rendered text), which is why switching the language mid-game also translates the message
+currently on screen.
 
-## Bugs encontrados e corrigidos
+## Bugs found and fixed
 
-Veja [BUGS.md](./BUGS.md).
+See [BUGS.md](./BUGS.md).
 
-## Deploy
+## Deployment
 
-Push na branch `main` dispara o workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml),
-que roda os testes, faz `npm run build` e publica `dist/` no GitHub Pages
-(Pages configurado com source *GitHub Actions*). O `base` do Vite é `/battleship-game/`.
+Pushing to the `main` branch triggers the
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) workflow, which runs the tests, runs
+`npm run build` and publishes `dist/` to GitHub Pages (Pages configured with *GitHub Actions* as the
+source). The Vite `base` is `/battleship-game/`.

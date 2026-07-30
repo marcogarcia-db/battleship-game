@@ -108,7 +108,7 @@ export function placeFleetRandomly(board, fleet = FLEET, random = Math.random) {
     if (placedAll) return next
   }
 
-  throw new Error('Não foi possível posicionar a frota aleatoriamente')
+  throw new Error('Could not place the fleet randomly')
 }
 
 export function hasBeenShot(board, row, col) {

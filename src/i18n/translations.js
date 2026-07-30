@@ -1,10 +1,10 @@
 export const LANGUAGES = [
-  { code: 'pt', label: 'Português', htmlLang: 'pt-BR' },
   { code: 'en', label: 'English', htmlLang: 'en' },
+  { code: 'pt', label: 'Português', htmlLang: 'pt-BR' },
   { code: 'es', label: 'Español', htmlLang: 'es' },
 ]
 
-export const DEFAULT_LANGUAGE = 'pt'
+export const DEFAULT_LANGUAGE = 'en'
 
 /**
  * Every language must define exactly the same keys — `translations.test.js`
@@ -12,60 +12,6 @@ export const DEFAULT_LANGUAGE = 'pt'
  * Placeholders use `{name}` and are filled by the translator in ./index.js.
  */
 export const translations = {
-  pt: {
-    'app.title': 'Batalha Naval',
-    'app.documentTitle': 'Batalha Naval — Jogador vs IA',
-    'app.subtitle': 'Você contra uma IA "hunt / target" — 100% no navegador.',
-    'language.label': 'Idioma',
-
-    'setup.intro': 'Posicione sua frota: clique no seu tabuleiro ou use "Posicionar aleatoriamente".',
-    'setup.invalid': 'Posição inválida: fora da grade ou sobrepondo outro navio.',
-    'setup.placed': '{ship} posicionado. Faltam {remaining} navio(s).',
-    'setup.complete': 'Frota completa! Clique em "Iniciar batalha".',
-    'setup.random': 'Frota posicionada aleatoriamente. Clique em "Iniciar batalha".',
-    'setup.cleared': 'Posicionamento limpo. Posicione sua frota novamente.',
-
-    'controls.rotate': 'Rotacionar ({orientation})',
-    'controls.random': 'Posicionar aleatoriamente',
-    'controls.clear': 'Limpar posicionamento',
-    'controls.start': 'Iniciar batalha',
-
-    'orientation.horizontal': 'horizontal',
-    'orientation.vertical': 'vertical',
-
-    'battle.intro': 'Sua vez: clique no tabuleiro inimigo para atirar.',
-    'battle.alreadyShot': 'Você já atirou nessa célula. Escolha outra.',
-    'turn.player': 'Sua vez',
-    'turn.ai': 'Vez da IA...',
-
-    'actor.player': 'Você',
-    'actor.ai': 'A IA',
-    'shot.miss': '{actor} atirou na água.',
-    'shot.hit': '{actor} acertou um navio!',
-    'shot.sunk': '{actor} afundou o {ship}!',
-
-    'board.setupTitle': 'Sua frota',
-    'board.playerTitle': 'Sua frota ({count} navios vivos)',
-    'board.enemyTitle': 'Frota inimiga ({count} navios vivos)',
-    'fleet.sunk': 'afundado',
-
-    'gameOver.win': 'Vitória! Você afundou a frota inimiga.',
-    'gameOver.lose': 'Derrota. A IA afundou sua frota.',
-    'gameOver.playAgain': 'Jogar novamente',
-
-    'ship.carrier': 'Porta-aviões',
-    'ship.battleship': 'Encouraçado',
-    'ship.cruiser': 'Cruzador',
-    'ship.submarine': 'Submarino',
-    'ship.destroyer': 'Destroier',
-
-    'cell.empty': 'vazio',
-    'cell.ship': 'navio',
-    'cell.miss': 'água',
-    'cell.hit': 'acerto',
-    'cell.sunk': 'afundado',
-  },
-
   en: {
     'app.title': 'Battleship',
     'app.documentTitle': 'Battleship — Player vs AI',
@@ -118,6 +64,60 @@ export const translations = {
     'cell.miss': 'miss',
     'cell.hit': 'hit',
     'cell.sunk': 'sunk',
+  },
+
+  pt: {
+    'app.title': 'Batalha Naval',
+    'app.documentTitle': 'Batalha Naval — Jogador vs IA',
+    'app.subtitle': 'Você contra uma IA "hunt / target" — 100% no navegador.',
+    'language.label': 'Idioma',
+
+    'setup.intro': 'Posicione sua frota: clique no seu tabuleiro ou use "Posicionar aleatoriamente".',
+    'setup.invalid': 'Posição inválida: fora da grade ou sobrepondo outro navio.',
+    'setup.placed': '{ship} posicionado. Faltam {remaining} navio(s).',
+    'setup.complete': 'Frota completa! Clique em "Iniciar batalha".',
+    'setup.random': 'Frota posicionada aleatoriamente. Clique em "Iniciar batalha".',
+    'setup.cleared': 'Posicionamento limpo. Posicione sua frota novamente.',
+
+    'controls.rotate': 'Rotacionar ({orientation})',
+    'controls.random': 'Posicionar aleatoriamente',
+    'controls.clear': 'Limpar posicionamento',
+    'controls.start': 'Iniciar batalha',
+
+    'orientation.horizontal': 'horizontal',
+    'orientation.vertical': 'vertical',
+
+    'battle.intro': 'Sua vez: clique no tabuleiro inimigo para atirar.',
+    'battle.alreadyShot': 'Você já atirou nessa célula. Escolha outra.',
+    'turn.player': 'Sua vez',
+    'turn.ai': 'Vez da IA...',
+
+    'actor.player': 'Você',
+    'actor.ai': 'A IA',
+    'shot.miss': '{actor} atirou na água.',
+    'shot.hit': '{actor} acertou um navio!',
+    'shot.sunk': '{actor} afundou o {ship}!',
+
+    'board.setupTitle': 'Sua frota',
+    'board.playerTitle': 'Sua frota ({count} navios vivos)',
+    'board.enemyTitle': 'Frota inimiga ({count} navios vivos)',
+    'fleet.sunk': 'afundado',
+
+    'gameOver.win': 'Vitória! Você afundou a frota inimiga.',
+    'gameOver.lose': 'Derrota. A IA afundou sua frota.',
+    'gameOver.playAgain': 'Jogar novamente',
+
+    'ship.carrier': 'Porta-aviões',
+    'ship.battleship': 'Encouraçado',
+    'ship.cruiser': 'Cruzador',
+    'ship.submarine': 'Submarino',
+    'ship.destroyer': 'Destroier',
+
+    'cell.empty': 'vazio',
+    'cell.ship': 'navio',
+    'cell.miss': 'água',
+    'cell.hit': 'acerto',
+    'cell.sunk': 'afundado',
   },
 
   es: {
